@@ -13,11 +13,12 @@ object MediaStoreTool {
     /** 端末の動画フォルダーにコピーする */
     suspend fun copyToVideoFolder(
         context: Context,
-        file: File
+        file: File,
+        fileName: String
     ) = withContext(Dispatchers.IO) {
         val contentResolver = context.contentResolver
         val contentValues = contentValuesOf(
-            MediaStore.MediaColumns.DISPLAY_NAME to file.name,
+            MediaStore.MediaColumns.DISPLAY_NAME to fileName,
             MediaStore.MediaColumns.RELATIVE_PATH to "${Environment.DIRECTORY_MOVIES}/AndroidPartialScreenInternalAudioRecorder",
         )
         val uri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues) ?: return@withContext

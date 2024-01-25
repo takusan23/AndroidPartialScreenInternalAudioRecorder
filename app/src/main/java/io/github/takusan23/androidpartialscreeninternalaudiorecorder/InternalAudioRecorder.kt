@@ -20,7 +20,9 @@ class InternalAudioRecorder {
     private var audioRecord: AudioRecord? = null
     private var audioEncoder: AudioEncoder? = null
     private var mediaMuxer: MediaMuxer? = null
-    private var audioRecordingFile: File? = null
+
+    var audioRecordingFile: File? = null
+        private set
 
     /**
      * 内部音声収録の初期化をする

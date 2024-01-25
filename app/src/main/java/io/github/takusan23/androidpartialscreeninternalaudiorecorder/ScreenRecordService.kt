@@ -11,36 +11,49 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 /** 画面録画サービス */
 class ScreenRecordService : Service() {
     private val notificationManager by lazy { NotificationManagerCompat.from(this) }
+    private val scope = MainScope()
 
     private var screenRecorder: ScreenRecorder? = null
 
     override fun onBind(intent: Intent): IBinder? = null
 
-override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-    // 通知を出す
-    notifyForegroundServiceNotification()
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // 通知を出す
+        notifyForegroundServiceNotification()
 
-    // Intent から値を取り出す
-    if (intent?.getBooleanExtra(INTENT_KEY_START_OR_STOP, false) == true) {
-        // 開始命令
-        screenRecorder = ScreenRecorder(
-            context = this,
-            resultCode = intent.getIntExtra(INTENT_KEY_MEDIA_PROJECTION_RESULT_CODE, -1),
-            resultData = intent.getParcelableExtra(INTENT_KEY_MEDIA_PROJECTION_RESULT_DATA)!!
-        )
-        screenRecorder?.startRecord()
-    } else {
-        // 終了命令
-        screenRecorder?.stopRecord()
-        stopSelf()
+        // Intent から値を取り出す
+        if (intent?.getBooleanExtra(INTENT_KEY_START_OR_STOP, false) == true) {
+            // 開始命令
+            screenRecorder = ScreenRecorder(
+                context = this,
+                resultCode = intent.getIntExtra(INTENT_KEY_MEDIA_PROJECTION_RESULT_CODE, -1),
+                resultData = intent.getParcelableExtra(INTENT_KEY_MEDIA_PROJECTION_RESULT_DATA)!!
+            )
+            // 録画開始
+            screenRecorder?.startRecord()
+        } else {
+            // 終了命令
+            scope.launch {
+                // 終了を待ってから stopSelf する
+                screenRecorder?.stopRecord()
+                stopSelf()
+            }
+        }
+
+        return START_NOT_STICKY
     }
 
-    return START_NOT_STICKY
-}
+    override fun onDestroy() {
+        super.onDestroy()
+        scope.cancel()
+    }
 
     private fun notifyForegroundServiceNotification() {
         if (notificationManager.getNotificationChannel(CHANNEL_ID) == null) {

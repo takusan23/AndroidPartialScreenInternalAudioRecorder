@@ -19,24 +19,19 @@ class AudioEncoder {
     /** MediaCodec エンコーダー */
     private var mediaCodec: MediaCodec? = null
 
-    /** 動画を切り替えた際に presentationTimeUs を0から始めたいため、 totalBytes とかを0にしても効果がなかった... */
-    private var prevPresentationTimeUs = 0L
-
     /**
      * エンコーダーを初期化する
      *
      * @param samplingRate サンプリングレート
      * @param channelCount チャンネル数
      * @param bitRate ビットレート
-     * @param isOpus コーデックにOpusを利用する場合はtrue。動画のコーデックにVP9を利用している場合は必須
      */
     fun prepareEncoder(
         samplingRate: Int = 44_100,
         channelCount: Int = 2,
         bitRate: Int = 192_000,
-        isOpus: Boolean = false,
     ) {
-        val codec = if (isOpus) MediaFormat.MIMETYPE_AUDIO_OPUS else MediaFormat.MIMETYPE_AUDIO_AAC
+        val codec = MediaFormat.MIMETYPE_AUDIO_AAC
         val audioEncodeFormat = MediaFormat.createAudioFormat(codec, samplingRate, channelCount).apply {
             setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
             setInteger(MediaFormat.KEY_BIT_RATE, bitRate)
@@ -87,20 +82,8 @@ class AudioEncoder {
                     val outputBuffer = mediaCodec!!.getOutputBuffer(outputBufferId)!!
                     if (bufferInfo.size > 1) {
                         if (bufferInfo.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG == 0) {
-                            // BufferInfoを作り直す
-                            // BufferInfo内にある presentationTimeUs の値が多分MediaCodecスタート時から常に増え続けている
-                            // ファイルを作り直した際は0から始めてほしいため作り直す必要がある
-                            val fixBufferInfo = MediaCodec.BufferInfo().apply {
-                                // 動画切り替え時は0を入れる
-                                if (prevPresentationTimeUs == 0L) {
-                                    prevPresentationTimeUs = bufferInfo.presentationTimeUs
-                                    set(bufferInfo.offset, bufferInfo.size, 0, bufferInfo.flags)
-                                } else {
-                                    set(bufferInfo.offset, bufferInfo.size, bufferInfo.presentationTimeUs - prevPresentationTimeUs, bufferInfo.flags)
-                                }
-                            }
                             // ファイルに書き込む...
-                            onOutputBufferAvailable(outputBuffer, fixBufferInfo)
+                            onOutputBufferAvailable(outputBuffer, bufferInfo)
                         }
                     }
                     // 返却
