@@ -23,11 +23,11 @@ object MediaMuxerTool {
         // 出力先
         val mediaMuxer = MediaMuxer(resultFile.path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
 
-        // mimeType と ファイル
         val (
             audioPair,
             videoPair
         ) = listOf(
+            // mimeType と ファイル
             audioTrackFile to "audio/",
             videoTrackFile to "video/"
         ).map { (file, mimeType) ->
