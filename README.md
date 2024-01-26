@@ -5,4 +5,6 @@
 
 https://github.com/takusan23/AndroidPartialScreenInternalAudioRecorder/assets/32033405/b31a8370-3da8-4eab-adc4-543ad9390f09
 
+せっかくなので、単一アプリから離れた時は、アプリに戻ってきてね的なメッセージを動画に表示するようにしてみました。
+
 https://github.com/takusan23/AndroidPartialScreenInternalAudioRecorder/assets/32033405/d2265d4c-4afc-446d-be76-9a7f89069d4d
